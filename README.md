@@ -31,3 +31,6 @@ Please create an issue!
 ## Similar projects
 - [wscat](https://github.com/websockets/wscat)
 - [websocat](https://github.com/vi/websocat)
+
+## License
+MIT
