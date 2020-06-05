@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,11 +19,24 @@ func main() {
 	}
 	url := os.Args[1]
 
-	conn, _, err := websocket.DefaultDialer.Dial(url, http.Header{})
-	defer conn.Close()
+	conn, resp, err := websocket.DefaultDialer.Dial(url, http.Header{})
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error establishing WebSocket connection: %s\n", err)
+		if resp != nil {
+			fmt.Printf("Response received\n")
+			fmt.Printf("Status Code: %d\n", resp.StatusCode)
+			body, err := ioutil.ReadAll(resp.Body)
+			if err == nil {
+				fmt.Printf("Body: %s\n", body)
+			}
+			fmt.Printf("Headers:\n")
+			for key, values := range resp.Header {
+				fmt.Printf("    %s: %s\n", key, strings.Join(values, ", "))
+			}
+		}
+		return
 	}
+	defer conn.Close()
 	fmt.Printf("Connected to %s\n", url)
 
 	go func() {
@@ -36,7 +51,7 @@ func main() {
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			panic(err)
+			fmt.Printf("Error reading message from WebSocket: %s\n", err)
 		}
 		fmt.Printf("< %s\n", msg)
 	}
